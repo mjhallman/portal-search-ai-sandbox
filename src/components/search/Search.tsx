@@ -1,10 +1,11 @@
 import {useSelector} from "react-redux";
 import {RootState} from "../../store/store";
 import {createApi, fetchBaseQuery} from "@reduxjs/toolkit/query";
-import {useGetStructureQuery, useSearchQuery} from "../../store/api";
+import {useGetStructureQuery, useSearchQuery} from "../../store/deployApi";
 import React, {useEffect, useState} from "react";
-import {TextField} from "@mui/material";
+import {Grid, TextField} from "@mui/material";
 import SearchHit from "../search_hit/SearchHit";
+import {useGetChatQuery} from "../../store/api";
 
 export type SearchProps = {}
 
@@ -19,7 +20,7 @@ export type DeploymentParams = {
 
 
 const Search = (props: SearchProps) => {
-  const [searchQueryInForm, setSearchQueryInForm] = useState("")
+  const [searchQueryInForm, setSearchQueryInForm] = useState("Is it safe to move files?")
   const [searchQuery, setSearchQuery] = useState("")
   const [skip, setSkip] = useState(true)
   const apiDetails = useSelector((state: RootState) => state.apiDetails.value)
@@ -38,6 +39,16 @@ const Search = (props: SearchProps) => {
       }
   );
 
+  const {data: chatData, error: chatError, isFetching: chatIsFetching, } = useGetChatQuery({
+    query: searchQuery,
+    contentHrefs: data ? data?.hits.slice(0, 3).map(hit => hit.href) : []
+  }, {
+    skip: !(!!searchQuery && !!data)
+  })
+
+  const chatResponseHtml = chatData?.chatResponse?.answer
+
+
   const handleTextChange = (event) => {
     const value = event.target.value
     setSearchQueryInForm(value)
@@ -51,24 +62,42 @@ const Search = (props: SearchProps) => {
   }
 
   return (
-    <div>
+    <Grid container spacing={2} padding={5}>
+      <Grid item xs={12}>
+        <TextField value={searchQueryInForm} onChange={handleTextChange} onKeyDown={handleKeyDown} label="Search" variant="standard"  fullWidth={true}/>
+      </Grid>
 
-      <TextField onChange={handleTextChange} onKeyDown={handleKeyDown} label="Search" variant="standard" />
-
-      {isLoading && <div>Loading...</div>}
-      {data && <div>
-        {
-          data.hits.map((hit) => {
-            return (
-              <SearchHit key={hit.href} searchHit={hit} />
-            )
-          })
-        }
-
-      </div>}
+      <Grid item xs={6}>
+        <div>
 
 
-    </div>
+          {isLoading && <div>Loading...</div>}
+          {data && <div>
+            {
+              data.hits.map((hit) => {
+                return (
+                    <SearchHit key={hit.href} searchHit={hit} />
+                )
+              })
+            }
+
+          </div>}
+        </div>
+      </Grid>
+
+      <Grid item xs={4}>
+        <div>
+          <h2>Chat</h2>
+          {chatIsFetching && <div>Loading...</div>}
+          {!chatIsFetching && chatData && <div>
+            <div dangerouslySetInnerHTML={{__html: chatResponseHtml}} />
+
+          </div>}
+        </div>
+      </Grid>
+
+    </Grid>
+
   )
 
 }
