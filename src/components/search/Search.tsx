@@ -6,6 +6,7 @@ import React, {useEffect, useState} from "react";
 import {Grid, TextField} from "@mui/material";
 import SearchHit from "../search_hit/SearchHit";
 import {useGetChatQuery} from "../../store/api";
+import ChatResponseDisplay from "./ChatResponseDisplay";
 
 export type SearchProps = {}
 
@@ -18,8 +19,9 @@ export type DeploymentParams = {
   deploymentId: string
 }
 
-
 const Search = (props: SearchProps) => {
+
+
   const [searchQueryInForm, setSearchQueryInForm] = useState("Is it safe to move files?")
   const [searchQuery, setSearchQuery] = useState("")
   const [skip, setSkip] = useState(true)
@@ -70,7 +72,8 @@ const Search = (props: SearchProps) => {
       <Grid item xs={6}>
         <div>
 
-
+          <h2>Search Results</h2>
+          <hr/>
           {isLoading && <div>Loading...</div>}
           {data && <div>
             {
@@ -88,9 +91,10 @@ const Search = (props: SearchProps) => {
       <Grid item xs={4}>
         <div>
           <h2>Chat</h2>
+          <hr/>
           {chatIsFetching && <div>Loading...</div>}
           {!chatIsFetching && chatData && <div>
-            <div dangerouslySetInnerHTML={{__html: chatResponseHtml}} />
+            <ChatResponseDisplay chatResponse={chatData}/>
 
           </div>}
         </div>

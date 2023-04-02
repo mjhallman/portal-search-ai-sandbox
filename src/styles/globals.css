@@ -105,3 +105,15 @@ a {
     color-scheme: dark;
   }
 }
+
+.messageContainer {
+  border: 1px solid #aaa;
+  border-radius: 2px;
+  margin-bottom: 20px;
+  text-overflow: wrap;
+  overflow: hidden;
+}
+
+.messageContainer pre {
+  white-space: pre-wrap;
+}

@@ -2,6 +2,19 @@ import {ChatRequest, ChatResponse} from "../pages/api/chat";
 import {Configuration, OpenAIApi} from "openai";
 const { convert } = require('html-to-text');
 
+// The first message sent, with role=system
+const INITIAL_MESSAGE = "You are Heretto GPT, an assistant used on a documentation site, to help answer questions related to the documentation."
+
+// Prefixed to the user's query, (the last message sent)
+const USER_PROMPT_PREFIX = "Answer the following question using only the documentation provided. Respond in JSON containing 4 fields: " +
+    "answer (in HTML), " +
+    "sourceIds (An array of ids of pages which contained the answer. The id must be one of the ids I provide.), " +
+    "confidence (a number between 1 and 100 indicating how well your answer answers the question), " +
+    "and info (text containing any extra information you would like to provide)." +
+    "Your response must be valid JSON. Include no other information in your response." +
+    "If the documentation provided does not provide an answer to the question, respond with the answer 'I am sorry, I cannot answer this question.' QUESTION: "
+
+
 const cleanRegex = new RegExp('\\[https://storage.googleapis.co.*?\\]')
 
 export type PageLink = {
@@ -80,19 +93,12 @@ export default class AiChatHandler {
       return this.buildDocumentationMessage(String(id), pageContent.title, text)
     })
 
-    const userPromptPrefix = "Answer the following question using only the documentation provided. Respond in JSON containing 4 fields: " +
-        "answer (in HTML), " +
-        "sourceIds (An array of ids of pages which contained the answer. The id must be one of the ids I provide.), " +
-        "confidence (a number between 1 and 100 indicating how well your answer answers the question), " +
-        "and info (text containing any extra information you would like to provide)." +
-        "Your response must be valid JSON. Include no other information in your response." +
-        "If the documentation provided does not provide an answer to the question, respond with the answer 'I am sorry, I cannot answer this question.' QUESTION: "
-    const initialMessage = {"role": "user", "content": "I will send you documentation in the format: ID: [id] \nTitle: [title] \n Content: [content]. Then I'd like you to answer questions, using the documentation provided."}
+    const initialMessage = {"role": "user", "content": INITIAL_MESSAGE}
     const messages = [
       {"role": "system", "content": "You are Heretto GPT, an assistant used on a documentation site, to help answer questions related "},
       initialMessage,
       ...contentMessages,
-      {"role": "user", "content": userPromptPrefix + userQuery}
+      {"role": "user", "content": USER_PROMPT_PREFIX + ' ' + userQuery}
     ]
 
 
